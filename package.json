@@ -1,0 +1,8 @@
+{
+  "name": "code-review-graph-viewer-ui",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  }
+}

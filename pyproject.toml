@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "code-review-graph-viewer"
+version = "0.1.0"
+description = "Independent live, read-only explorer for Code Review Graph databases"
+license = "MIT"
+authors = [{name = "Fabio Santini"}]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = ["fastapi>=0.115,<1", "uvicorn>=0.30,<1", "mcp>=1.26,<2", "httpx>=0.27,<1"]
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "httpx>=0.27,<1"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["graphviewer"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[project.scripts]
+code-review-graph-viewer = "graphviewer.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/FabioSantini/code-review-graph-viewer"
+Repository = "https://github.com/FabioSantini/code-review-graph-viewer"
+Issues = "https://github.com/FabioSantini/code-review-graph-viewer/issues"

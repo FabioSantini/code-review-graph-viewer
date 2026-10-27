@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Code Review Graph Viewer</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/designer-theme.css?v=all-views-2">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="GraphViewer home"><span class="brand-icon">◈</span> GraphViewer</a>
+    <div class="source-control"><label for="source-select">Graph source</label><select id="source-select" aria-label="Graph source"></select></div>
+    <button id="manage-sources" class="button subtle">Manage sources <span>＋</span></button>
+    <span id="source-status" class="status">Loading sources</span>
+    <button id="refresh" class="button subtle" title="Read the current graph again">↻ Refresh</button>
+  </header>
+  <div class="workspace">
+    <aside class="sidebar" aria-label="Graph views">
+      <div class="sidebar-heading">Explore code</div>
+      <nav id="views">
+        <button data-view="architecture"><span>◈</span> Architecture</button>
+        <button data-view="files"><span>▤</span> Files</button>
+        <button data-view="classes"><span>▣</span> Classes</button>
+        <button data-view="functions"><span>ƒ</span> Functions</button>
+        
+        <div class="nav-divider"></div>
+        <button data-view="folders"><span>▱</span> Folders</button>
+        <button data-view="languages"><span>〈〉</span> Languages</button>
+      </nav>
+      <section class="filters">
+        <h2>Scope</h2>
+        <label for="language">Language</label><select id="language"><option value="">All languages</option></select>
+        <label for="folder">Folder prefix</label><input id="folder" placeholder="e.g. flowgw/flow" autocomplete="off">
+        <label for="relation">Connections</label>
+        <select id="relation"><option value="">All dependencies</option><option value="CALLS">Calls</option><option value="IMPORTS_FROM">Imports</option><option value="INHERITS">Inheritance</option><option value="REFERENCES">References</option><option value="TESTED_BY">Tests</option></select>
+        <label class="check"><input id="resolved" type="checkbox" checked> Resolved calls only</label>
+        <label class="check"><input id="include-tests" type="checkbox"> Include tests</label>
+        <button id="apply-filters" class="button">Apply scope</button>
+      </section>
+      <div class="sidebar-footer"><span class="live-dot"></span> Read-only graph access<br><small>Source databases stay unchanged.</small></div>
+    </aside>
+    <main class="main">
+      <div class="view-header"><div><div id="breadcrumb" class="breadcrumb">Code Review Graph Viewer</div><h1 id="view-title">Architecture</h1><p id="view-description">Start with an area, then follow its connections.</p></div><button id="browse" class="button primary">Browse elements</button></div>
+      <div class="graph-toolbar"><div class="history"><button id="back" class="icon-button" aria-label="Go back" disabled>←</button><button id="home" class="icon-button" aria-label="Return to view overview">⌂</button><span id="core-label">Project overview</span></div><div class="graph-controls"><label id="depth-control" hidden>Levels <select id="graph-depth" aria-label="Visible levels"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option></select></label><button id="zoom-out" class="icon-button" aria-label="Zoom out">−</button><button id="zoom-reset" class="icon-button" aria-label="Reset graph zoom">Fit</button><button id="zoom-in" class="icon-button" aria-label="Zoom in">＋</button></div></div>
+      <div id="notice" class="notice" hidden></div>
+      <section id="graph-area" class="graph-area" aria-label="Navigable code graph">
+        <div id="graph-message" class="graph-message" role="status">Loading graph…</div>
+        <svg id="graph" role="img" aria-label="Dependencies around the central node"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#91a4b9"/></marker></defs><g id="graph-layer"></g></svg>
+      </section>
+      <footer class="graph-footer"><div><span class="legend-dot core-dot"></span> Core <span class="legend-dot"></span> Connected element</div><span id="graph-count">—</span><span>Click for details · Double-click to explore</span></footer>
+    </main>
+    <aside class="inspector" aria-label="Node information">
+      <div class="inspector-header"><h2>Node information</h2><span>↗</span></div>
+      <div id="node-info" class="node-info"><div class="empty-symbol">◎</div><h3>A closer look</h3><p>Select a node to see its location, type and relationships.</p></div>
+    </aside>
+  </div>
+  <dialog id="browse-dialog" class="browse-dialog"><div class="dialog-top"><div><span id="browse-context" class="muted">Explore</span><h2 id="browse-title">Choose an element</h2></div><button class="icon-button close-dialog" aria-label="Close">×</button></div><div class="search-box"><span>⌕</span><input id="browse-search" type="search" placeholder="Filter by name or location" aria-label="Filter elements"></div><div id="browse-note" class="dialog-note"></div><div id="browse-items" class="browse-items"></div><div class="dialog-bottom"><span id="browse-total"></span><button id="browse-prev" class="button subtle">Previous</button><button id="browse-next" class="button subtle">Next</button></div></dialog>
+  <dialog id="sources-dialog" class="sources-dialog"><div class="dialog-top"><div><span class="muted">Connections</span><h2>Graph sources</h2></div><button class="icon-button close-dialog" aria-label="Close">×</button></div><p class="dialog-intro">Name your graph and connect a Code Review Graph-compatible MCP server.</p><div class="source-layout"><div><div id="source-list"></div><button id="new-source" class="button">＋ Add a source</button></div><form id="source-form"><input id="edit-source-id" type="hidden"><label>Display name<input id="endpoint-name" required maxlength="80" placeholder="e.g. My project"></label><label>Connection<select id="endpoint-transport"><option value="http">MCP over HTTP</option><option value="stdio">Local MCP command (stdio)</option><option value="local">Local graph index</option></select></label><div id="http-fields"><label>MCP endpoint URL<input id="endpoint-url" placeholder="http://127.0.0.1:9000/mcp"></label></div><div id="stdio-fields" hidden><label>Executable<input id="endpoint-command" placeholder="C:/path/to/python.exe"></label><label>Arguments (JSON array)<textarea id="endpoint-args" rows="3" placeholder='["-m", "code_review_graph", "serve"]'></textarea></label></div><label>Repository root <span class="muted">optional</span><input id="endpoint-repo" placeholder="C:/path/to/project"></label><details id="index-details"><summary>Local index for complete, fast browsing</summary><label>CRG SQLite database<input id="endpoint-database" placeholder="C:/path/to/project/.code-review-graph/graph.db"></label><p>Uses the same graph in read-only mode. Remote MCP catalogs may be partial.</p></details><p id="source-feedback" class="feedback" role="status"></p><div class="form-actions"><button id="test-source" type="button" class="button">Test connection</button><button type="submit" class="button primary">Save source</button></div></form></div></dialog>
+  <dialog id="code-dialog" class="code-dialog" aria-labelledby="code-title"><div class="dialog-top"><div><span class="muted">Source viewer · Read only</span><h2 id="code-title"></h2></div><button class="icon-button close-dialog" aria-label="Close source viewer">×</button></div><div id="code-meta" class="code-meta" role="status"></div><div id="code-body" class="code-body" tabindex="0" aria-label="Source code"></div><p id="code-notice" class="dialog-note"></p></dialog>
+  <script type="module" src="/static/app.js?v=history-1"></script>
+</body>
+</html>
