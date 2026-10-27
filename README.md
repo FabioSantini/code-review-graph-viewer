@@ -8,6 +8,8 @@ Code Review Graph builds and updates the index; this application reads it withou
 
 ![Synthetic demo graph](docs/demo.png)
 
+[View the screenshot gallery](docs/screenshots/README.md) — files, hidden groups, class and method navigation, source viewing and connection setup.
+
 ## Quick start
 
 Requires Python 3.12+ and [uv](https://docs.astral.sh/uv/).
